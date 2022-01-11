@@ -70,7 +70,7 @@ test_df.to_csv('brain_tumor_test.csv', index=False)
 train_list = train_df.values.tolist()
 test_list = test_df.values.tolist()
 
-def generator(samples, batch_size=32,shuffle_data=True):
+def generator(samples, batch_size=32,shuffle_data=False):
     """
     Yields the next training batch.
     Suppose `samples` is an array [[image1_filename,label1], [image2_filename,label2],...].
@@ -145,45 +145,52 @@ early_stopping = keras.callbacks.EarlyStopping(
 )
 
 
-history = model.fit_generator(
-    train_generator,
-    steps_per_epoch = steps_per_epoch,
-    epochs=5,
-    validation_data=test_generator,
-    validation_steps = validation_steps,
-    verbose=1,
-    callbacks = [early_stopping]
-)
-model.save("model_brain_adam.h5")
-print("Saved model to disk")
+# history = model.fit_generator(
+#     train_generator,
+#     steps_per_epoch = steps_per_epoch,
+#     epochs=20,
+#     validation_data=test_generator,
+#     validation_steps = validation_steps,
+#     verbose=1,
+#     callbacks = [early_stopping]
+# )
+# model.save("model_brain_adam.h5")
+# print("Saved model to disk")
 
 
 
-history_df = pd.DataFrame(history.history)
-history_df.loc[5:, ['loss', 'val_loss']].plot()
-history_df.loc[5:, ['binary_accuracy', 'val_binary_accuracy']].plot()
+# history_df = pd.DataFrame(history.history)
+# history_df.loc[5:, ['loss', 'val_loss']].plot()
+# history_df.loc[5:, ['binary_accuracy', 'val_binary_accuracy']].plot()
 
-print(("Best Validation Loss: {:0.4f}" +\
-      "\nBest Validation Accuracy: {:0.4f}")\
-      .format(history_df['val_loss'].min(), 
-              history_df['val_binary_accuracy'].max()))
+# print(("Best Validation Loss: {:0.4f}" +\
+#       "\nBest Validation Accuracy: {:0.4f}")\
+#       .format(history_df['val_loss'].min(), 
+#               history_df['val_binary_accuracy'].max()))
 
 
               
-pretrained_cnn = keras.models.load_model('./model_brain_adam.h5')
-eval_score = pretrained_cnn.evaluate(test_generator, steps = validation_steps)
-print('Eval loss:',eval_score[0])
-print('Eval accuracy:',eval_score[1])
+pretrained_cnn = keras.models.load_model('model_brain_adam.h5')
+# eval_score = pretrained_cnn.evaluate(test_generator, steps = validation_steps)
+# print('Eval loss:',eval_score[0])
+# print('Eval accuracy:',eval_score[1])
 
 
-y_pred = np.rint(pretrained_cnn.predict_generator(test_generator, steps = validation_steps)).astype(int)
+y_pred = np.rint(pretrained_cnn.predict(test_generator, steps = validation_steps)).astype(int)
 y_test = [i[1] for i in test_list[0:-2]]
 target_classes = ['No Tumor','Tumor']
-y_test = y_test[0:706]
+
+
+
+
+
+print(classification_report(y_test , y_pred))
+
+
 
 ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 
-print(classification_report(y_test, y_pred))
-cm = confusion_matrix(y_test, y_pred)
-f = sns.heatmap(cm, annot=True, fmt='d')
+# print(classification_report(y_test, y_pred))
+# cm = confusion_matrix(y_test, y_pred)
+# f = sns.heatmap(cm, annot=True, fmt='d')
 plt.show()
