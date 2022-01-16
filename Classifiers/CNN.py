@@ -87,14 +87,14 @@ def generator(samples, batch_size=32,shuffle_data=False):
            
             X_train = []
             y_train = []
-
+            
            
             for batch_sample in batch_samples:
                 label = batch_sample[1]
                 img_path = batch_sample[2]
                 img =  cv2.imread(img_path)
                 
-                
+                # img = cv2.resize(img,(224,224))
                 img = img.astype(np.float32)
                 X_train.append(keras.applications.nasnet.preprocess_input(img))
                 y_train.append(label)
@@ -102,7 +102,6 @@ def generator(samples, batch_size=32,shuffle_data=False):
             
             X_train = np.array(X_train)
             y_train = np.array(y_train)
-
                      
             yield X_train, y_train
 
@@ -114,7 +113,7 @@ test_generator = generator(test_list)
 
 model = Sequential([
     
-    MobileNet(input_shape=(224, 224, 3),include_top=False, weights='imagenet'),
+    MobileNet(input_shape=(240, 240, 3),include_top=False, weights='imagenet'),
     layers.GlobalAveragePooling2D(),
     layers.Dropout(0.2),
     layers.Dense(units=1, activation='sigmoid',name='preds'),   
@@ -144,11 +143,10 @@ early_stopping = keras.callbacks.EarlyStopping(
     restore_best_weights=True,
 )
 
-
 # history = model.fit_generator(
 #     train_generator,
 #     steps_per_epoch = steps_per_epoch,
-#     epochs=20,
+#     epochs=10,
 #     validation_data=test_generator,
 #     validation_steps = validation_steps,
 #     verbose=1,
